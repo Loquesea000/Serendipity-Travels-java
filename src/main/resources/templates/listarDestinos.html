@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destinos Disponibles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1e2b 0%, #2a2f3f 100%);
+            font-family: 'Poppins', sans-serif;
+            color: #f4f4f4;
+        }
+
+        .card {
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease;
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: #f4f4f4;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .destination-badge {
+            font-size: 2rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0.7;
+        }
+
+        .modal-dialog {
+            max-width: 800px;
+            margin: 1.75rem auto;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1e2b 0%, #2a2f3f 100%);
+            color: #f4f4f4;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .btn-outline-primary {
+            color: #3498db;
+            border-color: #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        #formularioReserva {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .form-control {
+            background-color: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            color: #f4f4f4;
+        }
+
+        .form-control:focus {
+            background-color: rgba(255,255,255,0.2);
+            border-color: #3498db;
+            color: #f4f4f4;
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+
+        .paquete-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .paquete-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-4 fw-bold text-light">Guía de Destinos</h2>
+                <p class="text-center mb-5 text-light">
+                    Explora nuestra selección de destinos únicos y descubre el momento perfecto para visitarlos.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4" th:each="destino : ${listaDestinos}">
+                <div class="card h-100 bg-dark text-light position-relative">
+                    <div class="destination-badge">🌍</div>
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold" th:text="${destino.nombre}">Destinos</h5>
+                        <p><strong>País:</strong> <span th:text="${destino.pais}"></span></p>
+                        <p><strong>Descripción:</strong> <span th:text="${destino.descripcion}"></span></p>
+
+                        <button 
+                            class="btn btn-outline-primary mt-3 w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalPaquetes"
+                            th:data-destino-id="${destino.id}"
+                            onclick="guardarDestinoId(this.getAttribute('data-destino-id'))">Reservar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar los paquetes -->
+    <div class="modal fade" id="modalPaquetes" tabindex="-1" aria-labelledby="modalPaquetesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-light" id="modalPaquetesLabel">Paquetes Disponibles</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4" id="paquetesContainer">
+                        <!-- Aquí se cargan los paquetes mediante JavaScript -->
+                    </div>
+                    <!-- Aquí se mostrará el formulario de reserva -->
+                    <div id="formularioReserva" style="display:none;">
+                        <h5 class="text-center mb-4 text-light">Formulario de Reserva</h5>
+                        <form id="reservaForm">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="nombre" class="form-label text-light">Nombre</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="cedula" class="form-label text-light">Cédula</label>
+                                    <input type="text" class="form-control" id="cedula" name="cedula" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="correo" class="form-label text-light">Correo</label>
+                                    <input type="email" class="form-control" id="correo" name="correo" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fecha" class="form-label text-light">Fecha de Reserva</label>
+                                <input type="date" class="form-control" id="fecha" name="fecha" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="confirmarReservaBtn">Confirmar Reserva</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+		
+    </div>
+	
+	<!-- Botón de volver en la esquina inferior izquierda -->
+	<a href="/UsuarioHome" class="btn btn-primary back-button">
+	<i class="bi bi-arrow-left me-2"></i>Volver
+	</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function guardarDestinoId(destinoId) {
+            sessionStorage.setItem('id_destino', destinoId);
+            console.log("Destino seleccionado. ID guardada:", destinoId);
+        }
+
+        const modalPaquetes = document.getElementById('modalPaquetes');
+        modalPaquetes.addEventListener('show.bs.modal', function () {
+            const destinoId = sessionStorage.getItem('id_destino');
+            const paquetesContainer = document.getElementById('paquetesContainer');
+            const formularioReserva = document.getElementById('formularioReserva');
+            paquetesContainer.innerHTML = '';
+            formularioReserva.style.display = 'none';
+
+            fetch(`/paquetes/listar-json`)
+                .then(response => response.json())
+                .then(paquetes => {
+                    paquetes.forEach(paquete => {
+                        const card = document.createElement('div');
+                        card.classList.add('col-md-6', 'col-lg-4');
+                        card.innerHTML = `
+                            <div class="card paquete-card h-100 bg-dark text-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">${paquete.nombre}</h5>
+                                    <p><strong>Descripción:</strong> ${paquete.descripcion}</p>
+                                    <button 
+                                        class="btn btn-primary w-100" 
+                                        data-paquete-id="${paquete.id}" 
+                                        onclick="seleccionarPaquete(${paquete.id})">Seleccionar Paquete</button>
+                                </div>
+                            </div>
+                        `;
+                        paquetesContainer.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Error al cargar los paquetes:', error));
+        });
+
+        function seleccionarPaquete(paqueteId) {
+            sessionStorage.setItem('id_paquete', paqueteId);
+
+            fetch(`/usuarios/getUsuarioSesion`)
+                .then(response => response.json())
+                .then(usuario => {
+                    document.getElementById('nombre').value = usuario.nombre;
+                    document.getElementById('cedula').value = usuario.cedula;
+                    document.getElementById('correo').value = usuario.correo;
+
+                    const formularioReserva = document.getElementById('formularioReserva');
+                    const paquetesContainer = document.getElementById('paquetesContainer');
+                    paquetesContainer.innerHTML = '';
+                    formularioReserva.style.display = 'block';
+                })
+                .catch(error => console.error('Error al cargar los datos del usuario:', error));
+        }
+
+        document.getElementById('reservaForm').onsubmit = function (event) {
+            event.preventDefault();
+
+            const reserva = {
+                fechaReserva: new Date().toISOString().split('T')[0],
+                fechaViaje: document.getElementById('fecha').value,
+                idDestino: parseInt(sessionStorage.getItem('id_destino')),
+                idPaquete: parseInt(sessionStorage.getItem('id_paquete')),
+                cedula: parseInt(document.getElementById('cedula').value)
+            };
+
+            fetch('/reservas/crear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reserva)
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Reserva creada:', data);
+                window.location.href = '/UsuarioHome';
+            })
+            .catch(error => console.error('Error al crear la reserva:', error));
+        };
+    </script>
+</body>
+</html>
